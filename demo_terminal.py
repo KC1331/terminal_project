@@ -14,7 +14,7 @@ mycursor = mydb.cursor()
 #val = []
 #mycursor.execute(sql, val)
 uid = [1000,1001,1002,1003,1004,1005]
-gid = [1000,1001,1002,1003,1004,1005]
+#rgid = [1000,1001,1002,1003,1004,1005]
 
 
 
@@ -51,7 +51,8 @@ if login_user == 'root' and login_pass == 'root':
     if command == 'useradd':
         for i in uid:
             sql = "INSERT INTO passwd (uname not null, uid not null,gid not null,comment,home_dir not null,default_shell not null) VALUES (%s, %s,%s,%s,%s,%s)"
-            val = (user_name,uid[i],gid[i],"",home_directory,default_shell)
+            gid=uid
+            val = (user_name,uid,gid,"",home_directory,default_shell)
         mycursor.execute(sql, val)
         mycursor.commit()
         write_to_file()
