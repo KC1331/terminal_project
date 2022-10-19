@@ -1,3 +1,6 @@
+create database terminal_project;
+user terminal_project;
+
 drop table passwd;
 drop table group1;
 
