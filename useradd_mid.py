@@ -47,7 +47,7 @@ def useradd_cmd():
     bash_shell()
     if len(cmd_list)==4:
       if cmd_list[0] =='useradd' and (cmd_list[1] =='-g' or cmd_list[1] == '-G') and cmd_list[2] in alist and cmd_list[3] not in ulist :
-        insert_group = "INSERT INTO passwd (user_name,gid) values (%s,%s)"
+        insert_group = "INSERT INTO passwd (user_name,gid,home_directory) values (%s,%s,%s)"
         gid_list = []
         sql = "SELECT gid from group1 where group_name = %s"
         val0 = [cmd_list[2]]
@@ -55,7 +55,7 @@ def useradd_cmd():
         for i in mycursor:
           gid_no = str(list(i))
           gid_list.append(gid_no[1:-1])
-        val = [cmd_list[3],gid_list[0]]
+        val = [cmd_list[3],gid_list[0],"/home/"+cmd_list[3]]
         mycursor.execute(insert_group,val)
         mydb.commit()
         cmd_list.clear()
@@ -81,7 +81,7 @@ def useradd_cmd():
         mycursor.execute(insert_group,val1)
         mydb.commit()
         # for adding user
-        insert_user = "INSERT INTO passwd (user_name,gid) values (%s,%s)"
+        insert_user = "INSERT INTO passwd (user_name,gid,home_directory) values (%s,%s,%s)"
         gid_list=[]
         sql = "SELECT gid from group1 where group_name = %s"
         val2 = [cmd_list[1]]
@@ -89,7 +89,7 @@ def useradd_cmd():
         for i in mycursor:
           gid_no=str(list(i))
           gid_list.append(gid_no[1:-1])
-        val3 = [cmd_list[1],gid_list[0]]
+        val3 = [cmd_list[1],gid_list[0],"/home/"+cmd_list[1]]
         mycursor.execute(insert_user,val3)
         mydb.commit()
         cmd_list.clear()
