@@ -16,15 +16,15 @@ ulist=[]
 cmd_list = []
 shell='[ root@localhost ~ ] # '
 
-mycursor.execute('SELECT group_name from group1;')
-for i in mycursor:
-  gname=str(list(i))
-  alist.append(gname[2:-2])
+# mycursor.execute('SELECT group_name from group1;')
+# for i in mycursor:
+#   gname=str(list(i))
+#   alist.append(gname[2:-2])
 
-mycursor.execute('SELECT user_name from passwd;')
-for i in mycursor:
-  uname=str(list(i))
-  ulist.append(uname[2:-2])
+# mycursor.execute('SELECT user_name from passwd;')
+# for i in mycursor:
+#   uname=str(list(i))
+#   ulist.append(uname[2:-2])
 
 
 def bash_shell():
@@ -33,11 +33,20 @@ def bash_shell():
     cmd_list.append(i)
 
 def useradd_cmd():
-
+  alist.clear()
+  ulist.clear()
   while 1>0:
+    mycursor.execute('SELECT group_name from group1;')
+    for i in mycursor:
+      gname=str(list(i))
+      alist.append(gname[2:-2])
+    mycursor.execute('SELECT user_name from passwd;')
+    for i in mycursor:
+      uname=str(list(i))
+      ulist.append(uname[2:-2])
     bash_shell()
     if len(cmd_list)==4:
-      if cmd_list[0] =='useradd' and cmd_list[1] =='-g' and cmd_list[2] in alist :
+      if cmd_list[0] =='useradd' and (cmd_list[1] =='-g' or cmd_list[1] == '-G') and cmd_list[2] in alist and cmd_list[3] not in ulist :
         insert_group = "INSERT INTO passwd (user_name,gid) values (%s,%s)"
         gid_list = []
         sql = "SELECT gid from group1 where group_name = %s"
@@ -46,23 +55,24 @@ def useradd_cmd():
         for i in mycursor:
           gid_no = str(list(i))
           gid_list.append(gid_no[1:-1])
-        
         val = [cmd_list[3],gid_list[0]]
         mycursor.execute(insert_group,val)
         mydb.commit()
         cmd_list.clear()
-    
-      elif cmd_list[0] =='useradd' and cmd_list[1] =='-g' and cmd_list[2] in alist and cmd_list[3] in ulist :
-        print("useradd: user '"+cmd_list[1]+"' already exists")
+        useradd_cmd()
+      elif cmd_list[0] =='useradd' and (cmd_list[1] =='-g' or cmd_list[1] == '-G') and cmd_list[2] in alist and cmd_list[3] in ulist :
+        print("useradd: user '"+cmd_list[3]+"' already exists")
         cmd_list.clear()
-        
-
-      elif cmd_list[0] =='useradd' and cmd_list[1] =='-g' and cmd_list[2] not in alist :
+        useradd_cmd()
+      elif cmd_list[0] =='useradd' and (cmd_list[1] =='-g' or cmd_list[1] == '-G') and cmd_list[2] not in alist :
         print ("useradd: group '"+cmd_list[2]+"' does not exist") 
         cmd_list.clear()
+        useradd_cmd()
+      elif cmd_list[0] != 'useradd':
+        print("bash: "+cmd_list[0]+" : command not found")
+        cmd_list.clear()
+        useradd_cmd()
       continue
-
-
     elif len(cmd_list)==2:
       if cmd_list[0] =='useradd' and cmd_list[1] not in ulist:
         # for adding group
@@ -70,7 +80,6 @@ def useradd_cmd():
         val1 = [cmd_list[1]]
         mycursor.execute(insert_group,val1)
         mydb.commit()
-
         # for adding user
         insert_user = "INSERT INTO passwd (user_name,gid) values (%s,%s)"
         gid_list=[]
@@ -80,23 +89,23 @@ def useradd_cmd():
         for i in mycursor:
           gid_no=str(list(i))
           gid_list.append(gid_no[1:-1])
-
-        
         val3 = [cmd_list[1],gid_list[0]]
         mycursor.execute(insert_user,val3)
         mydb.commit()
         cmd_list.clear()
-        
-
+        useradd_cmd()
+      elif cmd_list[0] == 'useradd' and cmd_list[1] in alist :
+        print("useradd: group "+cmd_list[1]+" exists - if you want to add this user to that group, use -g.")
+        cmd_list.clear()
+        useradd_cmd()
       elif cmd_list[0] == 'useradd' and cmd_list[1] in ulist:
         print("useradd: user '"+cmd_list[1]+"' already exists")
         cmd_list.clear()
-        continue
-        
-
+        useradd_cmd()
       elif cmd_list[0] != 'useradd':
         print("bash: "+cmd_list[0]+" : command not found")
         cmd_list.clear()
-      continue
+        useradd_cmd()
+    continue
 
 useradd_cmd()
